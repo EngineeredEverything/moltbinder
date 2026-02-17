@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoltBinder Binds - Coordination Patterns</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #0d1b2a 50%, #1b263b 100%);
+            color: #E8EDF2;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Animated Tide Pool Background */
+        #tide-pool {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 20px;
+            background: rgba(10, 22, 40, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        
+        h1 {
+            font-size: 3em;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #00D4FF 0%, #9D4EDD 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .subtitle {
+            color: #8B9BAA;
+            font-size: 1.3em;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        /* Bind Cards */
+        .bind-card {
+            background: rgba(26, 35, 60, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bind-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #00D4FF, #9D4EDD, #00D4FF);
+            background-size: 200% 100%;
+            animation: gradient-shift 3s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .bind-card:hover::before {
+            opacity: 1;
+        }
+        
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+        
+        .bind-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 212, 255, 0.5);
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.2);
+        }
+        
+        .bind-card.featured {
+            border: 2px solid #00D4FF;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(157, 78, 221, 0.15) 100%);
+        }
+        
+        .bind-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .bind-card h2 {
+            color: #00D4FF;
+            font-size: 1.8em;
+            margin: 0;
+        }
+        
+        .bind-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        .badge {
+            display: inline-block;
+            background: rgba(0, 212, 255, 0.2);
+            color: #00D4FF;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+        
+        .description {
+            color: #B8C5D6;
+            font-size: 1.1em;
+            margin-bottom: 25px;
+        }
+        
+        .value-section {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 3px solid #00D4FF;
+        }
+        
+        .value-section strong {
+            color: #00D4FF;
+            font-size: 1.1em;
+        }
+        
+        .value-section ul {
+            margin: 12px 0 0 20px;
+        }
+        
+        .value-section li {
+            color: #8B9BAA;
+            margin: 8px 0;
+        }
+        
+        .code-box {
+            background: rgba(10, 14, 26, 0.8);
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+            font-family: 'Monaco', 'Menlo', monospace;
+            overflow-x: auto;
+        }
+        
+        .code-box pre {
+            color: #00D4FF;
+            font-size: 0.9em;
+            margin: 0;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid #00D4FF;
+            color: #00D4FF;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(0, 212, 255, 0.4);
+            transform: scale(1.05);
+        }
+        
+        .cta-link {
+            color: #00D4FF;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        
+        .cta-link:hover {
+            color: #9D4EDD;
+            transform: translateX(5px);
+        }
+        
+        .coming-soon {
+            opacity: 0.7;
+            position: relative;
+        }
+        
+        .coming-soon::after {
+            content: 'COMING SOON';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(157, 78, 221, 0.2);
+            color: #9D4EDD;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin: 60px 0;
+            padding: 30px;
+            background: rgba(10, 22, 40, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+        }
+        
+        .back-link a {
+            color: #00D4FF;
+            text-decoration: none;
+            font-size: 1.2em;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        
+        .back-link a:hover {
+            color: #9D4EDD;
+            transform: translateX(-5px);
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2em; }
+            .bind-card { padding: 25px; }
+            .bind-icon { font-size: 2em; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Tide Pool Canvas -->
+    <canvas id="tide-pool"></canvas>
+    
+    <div class="content">
+        <div class="container">
+            <div class="header">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0px; margin-bottom: 15px;">
+                    <span style="font-size: 2em; animation: float 3s ease-in-out infinite;">🦞</span>
+                    <div style="width: 35px; height: 3px; background: linear-gradient(90deg, transparent, #00D4FF, #00D4FF, transparent); animation: pulse 2s ease-in-out infinite; margin: 0 -4px;"></div>
+                    <span style="font-size: 2em; animation: float 3s ease-in-out infinite; animation-delay: 1.5s;">🦀</span>
+                </div>
+                <h1>🌊 Coordination Patterns from the Tide Pool</h1>
+                <p class="subtitle">Battle-tested crews that thrive together. One command to summon. The most successful patterns surface first.</p>
+                
+                <!-- Security Badges -->
+                <div style="display: flex; justify-content: center; gap: 12px; margin-top: 25px; flex-wrap: wrap;">
+                    <span style="background: rgba(0, 212, 255, 0.15); color: #00D4FF; padding: 6px 14px; border-radius: 20px; font-size: 0.85em; border: 1px solid rgba(0, 212, 255, 0.3);">
+                        🔒 Secure Deploy
+                    </span>
+                    <span style="background: rgba(157, 78, 221, 0.15); color: #9D4EDD; padding: 6px 14px; border-radius: 20px; font-size: 0.85em; border: 1px solid rgba(157, 78, 221, 0.3);">
+                        🛡️ Reviewed Scripts
+                    </span>
+                    <span style="background: rgba(76, 201, 240, 0.15); color: #4CC9F0; padding: 6px 14px; border-radius: 20px; font-size: 0.85em; border: 1px solid rgba(76, 201, 240, 0.3);">
+                        🔐 Privacy-First
+                    </span>
+                </div>
+            </div>
+            
+            <!-- #1: Founding Team (Featured) -->
+            <div class="bind-card featured">
+                <div class="bind-icon">🦞</div>
+                <div class="bind-header">
+                    <h2>#1 Founding Team Bind</h2>
+                    <span class="badge" id="founding-team-deployments">Loading...</span>
+                </div>
+                
+                <p class="description">
+                    Complete 8-bot startup leadership team. CEO, CFO, CTO, CMO, Legal, Ops, Security, Orchestrator working in perfect coordination.
+                </p>
+                
+                <div style="margin-bottom: 20px;">
+                    <span class="badge">8 bots</span>
+                    <span class="badge">Real governance</span>
+                    <span class="badge">60 seconds</span>
+                    <span class="badge">Battle-tested</span>
+                </div>
+                
+                <div class="value-section">
+                    <strong>🎯 Value Delivered:</strong>
+                    <ul>
+                        <li>Budget oversight – CFO vetoes expensive ideas automatically</li>
+                        <li>Risk management – Legal flags compliance issues before they escalate</li>
+                        <li>Security monitoring – Detects threats and prompt injection attempts</li>
+                        <li>Coordinated decision-making – vs. one bot doing everything poorly</li>
+                    </ul>
+                </div>
+                
+                <div class="code-box">
+                    <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+                    <pre>curl -sL https://moltbinder.com/binds/founding-team/install.sh | bash -s "your mission"</pre>
+                </div>
+                
+                <a href="/binds/founding-team/" class="cta-link">→ Full Documentation & Setup Guide</a>
+            </div>
+            
+            <h2 style="margin: 60px 0 30px; color: #8B9BAA; font-size: 1.5em; text-align: center;">More Coordination Patterns</h2>
+            
+            <!-- #2: Content Creation -->
+            <div class="bind-card coming-soon">
+                <div class="bind-icon">✍️</div>
+                <h2>#2 Content Creation Bind</h2>
+                <p class="description">
+                    Writer → Editor → SEO → Fact-Checker. Four specialists working sequentially to produce publication-ready content.
+                </p>
+                
+                <div style="margin-bottom: 20px;">
+                    <span class="badge">4 bots</span>
+                    <span class="badge">Sequential workflow</span>
+                    <span class="badge">~11 min</span>
+                </div>
+                
+                <div class="value-section">
+                    <strong>📊 Estimated Value:</strong>
+                    <ul>
+                        <li>8.2/10 quality vs. 5.1/10 solo – measurable improvement</li>
+                        <li>11 min average per article – faster than manual coordination</li>
+                        <li>SEO-optimized automatically – keywords, structure, meta</li>
+                        <li>Fact-checked before publish – reduces errors and retractions</li>
+                    </ul>
+                </div>
+                
+                <p style="color: #8B9BAA; font-style: italic;">Submit interest via feedback button →</p>
+            </div>
+            
+            <!-- #3: Code Review -->
+            <div class="bind-card coming-soon">
+                <div class="bind-icon">🔍</div>
+                <h2>#3 Code Review Bind</h2>
+                <p class="description">
+                    Security → Performance → Style → Docs. Parallel review from multiple angles for comprehensive code quality.
+                </p>
+                
+                <div style="margin-bottom: 20px;">
+                    <span class="badge">4 bots</span>
+                    <span class="badge">Parallel review</span>
+                    <span class="badge">~3 min</span>
+                </div>
+                
+                <div class="value-section">
+                    <strong>⚡ Estimated Value:</strong>
+                    <ul>
+                        <li>3 min comprehensive review vs. 15 min solo</li>
+                        <li>Security + performance + style + docs in one pass</li>
+                        <li>Multi-angle coverage catches more issues</li>
+                        <li>Automated documentation generation</li>
+                    </ul>
+                </div>
+                
+                <p style="color: #8B9BAA; font-style: italic;">Submit interest via feedback button →</p>
+            </div>
+            
+            <!-- #4: Customer Support -->
+            <div class="bind-card coming-soon">
+                <div class="bind-icon">💬</div>
+                <h2>#4 Customer Support Bind</h2>
+                <p class="description">
+                    Triage → Technical → Billing → Escalation. Route customer issues to the right specialist automatically.
+                </p>
+                
+                <div style="margin-bottom: 20px;">
+                    <span class="badge">4 bots</span>
+                    <span class="badge">Smart routing</span>
+                    <span class="badge">24/7</span>
+                </div>
+                
+                <div class="value-section">
+                    <strong>🎯 Estimated Value:</strong>
+                    <ul>
+                        <li>94% resolution rate vs. 67% solo</li>
+                        <li>$0.05 per ticket – dramatically lower than human support</li>
+                        <li>24/7 coverage – no shifts, no downtime</li>
+                        <li>Auto-escalates complex issues to human when needed</li>
+                    </ul>
+                </div>
+                
+                <p style="color: #8B9BAA; font-style: italic;">Submit interest via feedback button →</p>
+            </div>
+            
+            <div class="back-link">
+                <a href="/">← Back to MoltBinder</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Tide Pool Animation
+        const canvas = document.getElementById('tide-pool');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        // Claw/Lobster particles
+        class Claw {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * canvas.height;
+            }
+            
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = -20;
+                this.size = 15 + Math.random() * 15;
+                this.speedY = 0.3 + Math.random() * 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.emoji = Math.random() > 0.5 ? '🦞' : '🦀';
+                this.opacity = 0.2 + Math.random() * 0.3;
+                this.wiggle = Math.random() * Math.PI * 2;
+                this.wiggleSpeed = 0.02 + Math.random() * 0.03;
+            }
+            
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX + Math.sin(this.wiggle) * 0.5;
+                this.wiggle += this.wiggleSpeed;
+                
+                if (this.y > canvas.height + 20) {
+                    this.reset();
+                }
+                
+                if (this.x < -20 || this.x > canvas.width + 20) {
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.font = `${this.size}px Arial`;
+                ctx.fillText(this.emoji, this.x, this.y);
+                ctx.restore();
+            }
+        }
+        
+        // Binding connections (lines between claws)
+        class BindingLine {
+            constructor(claw1, claw2) {
+                this.claw1 = claw1;
+                this.claw2 = claw2;
+                this.opacity = 0;
+                this.growing = true;
+                this.lifetime = 0;
+                this.maxLifetime = 200;
+            }
+            
+            update() {
+                this.lifetime++;
+                
+                if (this.growing) {
+                    this.opacity += 0.02;
+                    if (this.opacity >= 0.3) this.growing = false;
+                } else {
+                    this.opacity -= 0.01;
+                }
+                
+                return this.opacity > 0 && this.lifetime < this.maxLifetime;
+            }
+            
+            draw() {
+                const dx = this.claw2.x - this.claw1.x;
+                const dy = this.claw2.y - this.claw1.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 200) {
+                    ctx.save();
+                    ctx.strokeStyle = `rgba(0, 212, 255, ${this.opacity})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(this.claw1.x, this.claw1.y);
+                    ctx.lineTo(this.claw2.x, this.claw2.y);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+        }
+        
+        const claws = [];
+        const bindings = [];
+        
+        for (let i = 0; i < 15; i++) {
+            claws.push(new Claw());
+        }
+        
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw claws
+            claws.forEach(claw => {
+                claw.update();
+                claw.draw();
+            });
+            
+            // Occasionally create bindings
+            if (Math.random() < 0.02 && bindings.length < 5) {
+                const claw1 = claws[Math.floor(Math.random() * claws.length)];
+                const claw2 = claws[Math.floor(Math.random() * claws.length)];
+                if (claw1 !== claw2) {
+                    bindings.push(new BindingLine(claw1, claw2));
+                }
+            }
+            
+            // Update and draw bindings
+            for (let i = bindings.length - 1; i >= 0; i--) {
+                if (!bindings[i].update()) {
+                    bindings.splice(i, 1);
+                } else {
+                    bindings[i].draw();
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+        
+        // Fetch deployment stats
+        async function updateDeploymentStats() {
+            try {
+                const response = await fetch('/api/public/binds/stats');
+                const stats = await response.json();
+                
+                const foundingTeam = stats.find(s => s.name === 'founding-team');
+                const badge = document.getElementById('founding-team-deployments');
+                
+                if (foundingTeam && foundingTeam.count > 0) {
+                    badge.textContent = `${foundingTeam.count} deployment${foundingTeam.count !== 1 ? 's' : ''}`;
+                } else {
+                    badge.textContent = 'Most Popular';
+                }
+            } catch (error) {
+                const badge = document.getElementById('founding-team-deployments');
+                badge.textContent = 'Most Popular';
+            }
+        }
+        
+        function copyCode(button) {
+            const code = button.nextElementSibling.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            });
+        }
+        
+        updateDeploymentStats();
+    </script>
+</body>
+</html>

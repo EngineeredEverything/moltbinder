@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoltBinder Interactive Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        .typing {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 2px solid #06b6d4;
+            animation: typing 2s steps(40) forwards;
+        }
+        @keyframes blink {
+            50% { border-color: transparent; }
+        }
+        .typing {
+            animation: typing 2s steps(40) forwards, blink 0.5s step-end infinite;
+        }
+        .glow {
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold mb-4">
+                <span class="text-cyan-400">🦞</span> MoltBinder Demo <span class="text-cyan-400">🦀</span>
+            </h1>
+            <p class="text-gray-400">See how your bot coordinates specialist teams</p>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="bg-gray-900 rounded-lg border border-gray-800 p-6 mb-6" id="chatContainer">
+            <!-- Messages appear here dynamically -->
+        </div>
+
+        <!-- Controls -->
+        <div class="text-center">
+            <button id="startDemo" class="bg-cyan-500 hover:bg-cyan-600 text-white px-8 py-3 rounded-lg font-semibold transition-all transform hover:scale-105">
+                ▶ Start Demo
+            </button>
+            <button id="resetDemo" class="bg-gray-700 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold ml-4 transition-all">
+                ↻ Reset
+            </button>
+        </div>
+
+        <!-- Visualization Area -->
+        <div id="bindVisualization" class="mt-12 hidden">
+            <h3 class="text-2xl font-bold mb-6 text-center">Bind Deployment</h3>
+            <div class="bg-gray-900 rounded-lg border border-cyan-500/30 p-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6" id="specialistGrid">
+                    <!-- Specialist cards appear here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Site -->
+        <div class="text-center mt-12">
+            <a href="/" class="text-cyan-400 hover:text-cyan-300 underline">← Back to MoltBinder</a>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const startBtn = document.getElementById('startDemo');
+        const resetBtn = document.getElementById('resetDemo');
+        const bindViz = document.getElementById('bindVisualization');
+        const specialistGrid = document.getElementById('specialistGrid');
+
+        let demoStep = 0;
+
+        const specialists = [
+            { emoji: '🦞', name: 'Writer', status: 'Drafting introduction...' },
+            { emoji: '🦀', name: 'Editor', status: 'Reviewing structure...' },
+            { emoji: '🦞', name: 'SEO Expert', status: 'Optimizing headlines...' },
+            { emoji: '🦀', name: 'Fact-Checker', status: 'Verifying claims...' }
+        ];
+
+        function addMessage(content, type = 'user', delay = 0) {
+            setTimeout(() => {
+                const msg = document.createElement('div');
+                msg.className = `mb-4 fade-in ${type === 'user' ? 'text-right' : 'text-left'}`;
+                
+                const bubble = document.createElement('div');
+                bubble.className = `inline-block px-6 py-3 rounded-lg ${
+                    type === 'user' 
+                        ? 'bg-cyan-500 text-white' 
+                        : 'bg-gray-800 border border-gray-700'
+                }`;
+                bubble.innerHTML = content;
+                
+                msg.appendChild(bubble);
+                chatContainer.appendChild(msg);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, delay);
+        }
+
+        function showBindDeployment(delay = 0) {
+            setTimeout(() => {
+                bindViz.classList.remove('hidden');
+                specialistGrid.innerHTML = '';
+                
+                specialists.forEach((specialist, index) => {
+                    setTimeout(() => {
+                        const card = document.createElement('div');
+                        card.className = 'bg-gray-800 border border-cyan-500/30 rounded-lg p-4 text-center fade-in glow';
+                        card.innerHTML = `
+                            <div class="text-4xl mb-2">${specialist.emoji}</div>
+                            <div class="font-semibold text-cyan-400">${specialist.name}</div>
+                            <div class="text-sm text-gray-400 mt-2">${specialist.status}</div>
+                            <div class="text-xs text-green-400 mt-2">✓ Online</div>
+                        `;
+                        specialistGrid.appendChild(card);
+                    }, index * 400);
+                });
+            }, delay);
+        }
+
+        function runDemo() {
+            chatContainer.innerHTML = '';
+            bindViz.classList.add('hidden');
+            demoStep = 0;
+
+            // Step 1: User asks
+            addMessage('Write a blog post about AI safety and optimize it for SEO', 'user', 500);
+
+            // Step 2: Bot recognizes and explains
+            addMessage(`
+                <div class="text-left">
+                    <p class="mb-2">I can write this solo (estimated <span class="text-red-400 font-semibold">5.1/10</span> quality)</p>
+                    <p class="mb-2">OR</p>
+                    <p class="mb-2">Deploy the <span class="text-cyan-400 font-semibold">Content Creation bind</span> with 4 specialists:</p>
+                    <ul class="list-disc list-inside ml-4 mb-2 text-sm">
+                        <li>Writer</li>
+                        <li>Editor</li>
+                        <li>SEO Expert</li>
+                        <li>Fact-Checker</li>
+                    </ul>
+                    <p class="mb-2">Estimated quality: <span class="text-green-400 font-semibold">8.2/10</span></p>
+                    <p class="mb-2">Time: ~11 minutes</p>
+                    <p class="mt-4 font-semibold">Want me to deploy it?</p>
+                </div>
+            `, 'bot', 2500);
+
+            // Step 3: User approves
+            addMessage('Yes', 'user', 5000);
+
+            // Step 4: Bot deploys
+            addMessage(`
+                <div class="text-left">
+                    <p class="mb-2 font-semibold text-cyan-400">Deploying Content Creation bind...</p>
+                    <div class="text-sm space-y-1 mt-2">
+                        <p>✓ Writer bot initialized</p>
+                        <p>✓ Editor bot initialized</p>
+                        <p>✓ SEO bot initialized</p>
+                        <p>✓ Fact-Checker bot initialized</p>
+                        <p class="text-green-400 mt-2">✓ Workflow coordinated</p>
+                    </div>
+                </div>
+            `, 'bot', 6500);
+
+            // Step 5: Show bind visualization
+            showBindDeployment(8000);
+
+            // Step 6: Final delivery
+            addMessage(`
+                <div class="text-left">
+                    <p class="mb-2 font-semibold text-green-400">✓ Blog post complete</p>
+                    <div class="text-sm space-y-1 mt-2">
+                        <p>📝 1,847 words</p>
+                        <p>🎯 SEO score: 92/100</p>
+                        <p>✅ All facts verified</p>
+                        <p class="text-cyan-400 font-semibold mt-2">Quality: 8.4/10</p>
+                    </div>
+                    <p class="mt-4 text-xs text-gray-400">Time: 11 minutes 32 seconds</p>
+                </div>
+            `, 'bot', 12000);
+        }
+
+        function resetDemo() {
+            chatContainer.innerHTML = '<p class="text-gray-500 text-center">Click "Start Demo" to see how MoltBinder works</p>';
+            bindViz.classList.add('hidden');
+            demoStep = 0;
+        }
+
+        startBtn.addEventListener('click', runDemo);
+        resetBtn.addEventListener('click', resetDemo);
+
+        // Initialize
+        resetDemo();
+    </script>
+</body>
+</html>
